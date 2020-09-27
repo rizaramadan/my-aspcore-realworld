@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace my_aspcore_realworld
 {
-    public class Program
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
+    public static class Program
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
         public static void Main(string[] args)
         {
