@@ -57,10 +57,7 @@ namespace my_aspcore_realworld.Entities
             }
             return left.Equals(right);
         }
-        public static bool operator !=(Enumerable left, Enumerable right)
-        {
-            return !(left == right);
-        }
+        public static bool operator !=(Enumerable left, Enumerable right) => !(left == right);
         public static bool operator <(Enumerable left, Enumerable right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "cannot less-than null");

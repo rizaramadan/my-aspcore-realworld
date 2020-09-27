@@ -167,3 +167,9 @@ dotnet_diagnostic.RCS1001.severity = warning
 
 # RCS1062: Avoid interpolated string with no interpolation.
 dotnet_diagnostic.RCS1062.severity = warning
+
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none
+
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none
