@@ -1,8 +1,4 @@
-﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -28,9 +24,12 @@ namespace my_aspcore_realworld.Usecases
             bool isSuccess = await _userService.RegisterNew(r.User);
             if (isSuccess)
             {
+                _l.LogDebug("user successfully registered", r.User);
                 r.User.Token = _userService.GenerateTokenFrom(r.User);
+                await _userService.Login(r.User);
                 return r.User;
             }
+            _l.LogDebug("user regsitration fail", r.User);
             return null;
         }
     }

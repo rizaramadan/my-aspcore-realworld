@@ -6,4 +6,9 @@ namespace my_aspcore_realworld.Entities
     {
         public AppUser User { get; set; }
     }
+
+    public class UsersLogin : IRequest<AppUser>
+    {
+        public AppUser User { get; set; }
+    }
 }

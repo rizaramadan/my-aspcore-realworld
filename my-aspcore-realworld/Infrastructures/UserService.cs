@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,18 +15,23 @@ namespace my_aspcore_realworld.Infrastructures
     public class UserService : IUserService
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<UserService> _l;
         private readonly IConfiguration _config;
 
-        public UserService(ILogger<UserService> l, UserManager<AppUser> u, IConfiguration c)
+        public UserService(
+            ILogger<UserService> l,
+            UserManager<AppUser> u,
+            IConfiguration c,
+            SignInManager<AppUser> m)
         {
             _l = l;
             _userManager = u;
             _config = c;
+            _signInManager = m;
         }
 
-
-        public async Task<bool> RegisterNewUser(AppUser user)
+        public async Task<bool> RegisterNew(AppUser user)
         {
             IdentityResult result = await _userManager.CreateAsync(user);
             return result.Succeeded;
@@ -36,10 +39,12 @@ namespace my_aspcore_realworld.Infrastructures
 
         public string GenerateTokenFrom(AppUser user)
         {
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            byte[] key = Encoding.ASCII.GetBytes(_config["Jwt:SecretKey"]);
+            try
+            {
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                byte[] key = Encoding.ASCII.GetBytes(_config["Jwt:SecretKey"]);
 
-            Claim[] claims = new[] {
+                Claim[] claims = new[] {
                     new Claim(JwtRegisteredClaimNames.Sub, _config["Jwt:Subject"]),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString("O")),
@@ -48,14 +53,37 @@ namespace my_aspcore_realworld.Infrastructures
                     new Claim(JwtRegisteredClaimNames.Email, user.Email)
                 };
 
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(claims),
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+                SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+                return tokenHandler.WriteToken(token);
+            }
+            catch(Exception ex)
             {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+                _l.LogError($"fail to generate token from user {user.Id}, returning null", user, ex);
+                return null;
+            }
         }
+
+        public async Task<AppUser> Login(AppUser user)
+        {
+            AppUser result = await _userManager.FindByEmailAsync(user.Email);
+            if (result.Password.Equals(user.Password, StringComparison.OrdinalIgnoreCase))
+            {
+                await _signInManager.SignInAsync(result, isPersistent: false);
+                _l.LogDebug("successfully signing in", result);
+            }
+            else
+            {
+                _l.LogDebug("fail to signing in", user);
+            }
+            return result.ClearSensitiveProperties();
+        }
+
+        public async Task<AppUser> GetUserById(long id) => await _userManager.FindByIdAsync($"{id}");
     }
 }

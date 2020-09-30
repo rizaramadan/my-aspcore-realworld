@@ -1,12 +1,10 @@
 using System;
 using System.Text;
 using System.Text.Json;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,7 +12,6 @@ using Microsoft.IdentityModel.Tokens;
 using my_aspcore_realworld.Entities;
 using my_aspcore_realworld.Infrastructures;
 using my_aspcore_realworld.Infrastructures.Persistence;
-using my_aspcore_realworld.Usecases;
 
 namespace my_aspcore_realworld
 {
@@ -30,14 +27,13 @@ namespace my_aspcore_realworld
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddMyServices(Configuration);
+
             services.AddControllers().AddJsonOptions(x =>
             {
                 x.JsonSerializerOptions.IgnoreNullValues = true;
                 x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
-
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("PostgreConnection")));
 
             services.AddIdentity<AppUser, IdentityRole<long>>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<AppDbContext>();
@@ -49,7 +45,8 @@ namespace my_aspcore_realworld
             .AddJwtBearer(options => {
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = false,
@@ -60,12 +57,9 @@ namespace my_aspcore_realworld
                     ClockSkew = TimeSpan.Zero
                 };
             });
-
-            services.AddScoped<IUserService, UserService>();
-            services.AddMediatR(typeof(Startup));
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
