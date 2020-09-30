@@ -12,7 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using my_aspcore_realworld.Entities;
+using my_aspcore_realworld.Infrastructures;
 using my_aspcore_realworld.Infrastructures.Persistence;
+using my_aspcore_realworld.Usecases;
 
 namespace my_aspcore_realworld
 {
@@ -59,6 +61,7 @@ namespace my_aspcore_realworld
                 };
             });
 
+            services.AddScoped<IUserService, UserService>();
             services.AddMediatR(typeof(Startup));
         }
 
