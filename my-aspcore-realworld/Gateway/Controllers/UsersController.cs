@@ -54,6 +54,7 @@ namespace my_aspcore_realworld.Gateway.Controllers
         public async Task<IActionResult> LoginAsync(UsersLogin user)
         {
             AppUser result = await _mediator.Send(user);
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
             return JsonOf(result);
         }
     }

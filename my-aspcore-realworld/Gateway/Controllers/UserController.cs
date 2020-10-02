@@ -15,7 +15,10 @@ namespace my_aspcore_realworld.Gateway.Controllers
     {
         private readonly IUserService _userService;
 
-        public UserController(IUserService u) => _userService = u;
+        public UserController(IUserService u)
+        {
+            _userService = u;
+        }
 
         [HttpGet]
         public async Task<IActionResult> Get()

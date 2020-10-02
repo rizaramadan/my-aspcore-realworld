@@ -72,8 +72,10 @@ namespace my_aspcore_realworld
                .AllowAnyHeader()
                .AllowCredentials());
 
+            app.UseMiddleware<TokenBearerConverterMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.UseEndpoints(x => x.MapControllers());
         }
     }
